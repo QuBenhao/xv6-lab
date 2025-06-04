@@ -18,21 +18,21 @@ void prime(int pipe_fd[2], int base) {
                     fprintf(2, "pipe failed\n");
                     exit(1);
                 }
-                close(child_fd[0]); // Close read end of the child pipe
                 init_child = 1;
                 if (fork() == 0) {
                     // Child process
                     prime(child_fd, n);
                     exit(0);
                 }
+                close(child_fd[0]); // Close read end of the child pipe
             } else {
                 write(child_fd[1], &n, sizeof(n));
             }
         }
     }
     if (init_child) {
-        wait(0);
         close(child_fd[1]);
+        wait(0);
     }
     close(pipe_fd[0]);
 }
