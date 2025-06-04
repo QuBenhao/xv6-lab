@@ -7,7 +7,7 @@ MIT 6.S081: Operating System Engineering
 docker build -t mit-xv6 .
 ```
 ```shell
-docker run -it --name xv6-lab mit-xv6
+docker run -it --name xv6-lab -v $(pwd):/xv6 mit-xv6
 ```
 
 # Resource
