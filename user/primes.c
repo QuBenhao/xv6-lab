@@ -5,59 +5,62 @@
 #include <kernel/types.h>
 #include <user/user.h>
 
-void prime(int pipe_fd[2], int base) {
-    close(pipe_fd[1]); // Close write end of the pipe
-    fprintf(1, "prime %d\n", base);
-    int n;
-    short init_child = 0;
-    int child_fd[2];
-    while (read(pipe_fd[0], &n, sizeof(n)) > 0) {
-        if (n % base != 0) {
-            if (init_child == 0) {
-                if (pipe(child_fd) < 0) {
+void print_prime(int prime) {
+    fprintf(1, "prime %d\n", prime);
+}
+
+void sieve(int fd, int base) {
+    print_prime(base);
+    int num;
+    int next_fd[2];
+    short init = 0;
+    while (read(fd, &num, sizeof(num)) > 0) {
+        if (num % base != 0) {
+            if (init == 0) {
+                init = 1;
+                if (pipe(next_fd) < 0) {
                     fprintf(2, "pipe failed\n");
                     exit(1);
                 }
-                init_child = 1;
                 if (fork() == 0) {
-                    // Child process
-                    prime(child_fd, n);
+                    close(fd); // Close read end in child
+                    close(next_fd[1]); // Close write end in child
+                    sieve(next_fd[0], num); // Continue sieving with the next number
                     exit(0);
+                } else {
+                    close(next_fd[0]); // Close read end in parent
                 }
-                close(child_fd[0]); // Close read end of the child pipe
             } else {
-                write(child_fd[1], &n, sizeof(n));
+                write(next_fd[1], &num, sizeof(num));
             }
         }
     }
-    if (init_child) {
-        close(child_fd[1]);
-        wait(0);
+    if (init) {
+        close(next_fd[1]); // Close write end after finishing writing
+        wait(0); // Wait for the child process to finish
     }
-    close(pipe_fd[0]);
+    close(fd);
 }
 
 int main(int argc, char *argv[]) {
-    int pid = fork();
-    if (pid < 0) {
-        fprintf(2, "fork failed\n");
-        exit(1);
-    }
-    int pipe_fd[2];
-    if (pipe(pipe_fd) < 0) {
+    int fd[2];
+    if (pipe(fd) < 0) {
         fprintf(2, "pipe failed\n");
         exit(1);
     }
-    if (pid == 0) {
-        // Child process
-        prime(pipe_fd, 2);
-    } else {
-        close(pipe_fd[0]); // Close read end of the pipe
-        for (int i = 3; i <= 280; i++) {
-            write(pipe_fd[1], &i, sizeof(i));
+
+    if (fork() == 0) { // Child process
+        close(fd[1]); // Close write end in child
+        sieve(fd[0], 2); // Start sieving with base 2
+        close(fd[0]);
+        exit(0);
+    } else { // Parent process
+        close(fd[0]); // Close read end in parent
+        for (int i = 3; i <= 280; ++i) {
+            write(fd[1], &i, sizeof(i)); // Write numbers to the pipe
         }
-        close(pipe_fd[1]);
-        wait(0);
+        close(fd[1]); // Close write end after writing all numbers
+        wait(0); // Wait for the child process to finish
     }
     exit(0);
 }
