@@ -1,0 +1,13 @@
+usertrap
+
+0x7 SYS_exec
+
+user mode 0b10_00000000_00000000_00000000_00100010
+
+0x80001c82 a3
+
+The marchid CSR is an MXLEN-bit read-only register encoding the base microarchitecture of the
+hart. This register must be readable in any implementation, but a value of 0 can be returned to
+indicate the field is not implemented. scause `0xd` means Load page fault.
+
+initcode\000\000\000\000\000\000\000 1
