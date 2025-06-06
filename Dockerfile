@@ -9,6 +9,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     qemu-system-misc \
     gcc-riscv64-linux-gnu \
     binutils-riscv64-linux-gnu \
+    gcc-riscv64-unknown-elf \
+    binutils-riscv64-unknown-elf \
     vim \
     curl \
     && rm -rf /var/lib/apt/lists/*
