@@ -19,5 +19,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
 ADD . /xv6
 WORKDIR /xv6
 
+# Set up gdbinit for user
+RUN mkdir -p /root/.config/gdb && \
+    echo "add-auto-load-safe-path /xv6/.gdbinit" > /root/.config/gdb/gdbinit
+
 # Set default command to bash
 CMD ["/bin/bash"]
